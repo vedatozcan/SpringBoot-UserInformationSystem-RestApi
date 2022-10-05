@@ -4,9 +4,10 @@ import com.springboot.userinfosys.payload.UserDto;
 import com.springboot.userinfosys.payload.UserResponse;
 
 public interface UserService {
+	
 	UserDto createUser(UserDto userDto);
 	
-	UserResponse getAllUsers(int pageNo, int pageSize);
+	UserResponse getAllUsers(int pageNo, int pageSize, String sortBy, String sortDir);
 	
 	UserDto getUserById(long id);
 	

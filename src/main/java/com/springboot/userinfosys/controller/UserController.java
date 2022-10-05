@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.springboot.userinfosys.payload.UserDto;
 import com.springboot.userinfosys.payload.UserResponse;
 import com.springboot.userinfosys.service.UserService;
+import com.springboot.userinfosys.utils.AppConstants;
 
 @RestController
 @RequestMapping("/api/v1/users")
@@ -34,11 +35,12 @@ public class UserController {
 	
 	 // get all users rest api
     @GetMapping
-    public UserResponse getAllUsers(
-    		@RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
-    		@RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize){
+    public UserResponse getAllUsers(@RequestParam(value = "pageNo", defaultValue = AppConstants.DEFAULT_PAGE_NUMBER, required = false) int pageNo,
+    								@RequestParam(value = "pageSize", defaultValue = AppConstants.DEFAULT_PAGE_SIZE, required = false) int pageSize,
+    								@RequestParam(value = "sortBy", defaultValue = AppConstants.DEFAULT_SORT_BY, required = false) String sortBy,
+    								@RequestParam(value = "sortDir", defaultValue = AppConstants.DEFAULT_SORT_DIRECTION, required = false) String sortDir){
     	
-        return userService.getAllUsers(pageNo, pageSize);
+        return userService.getAllUsers(pageNo, pageSize, sortBy, sortDir);
     }
     
     // get user by id

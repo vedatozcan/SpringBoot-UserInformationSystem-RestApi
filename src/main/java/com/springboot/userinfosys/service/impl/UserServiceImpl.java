@@ -1,13 +1,13 @@
 package com.springboot.userinfosys.service.impl;
 
+import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 import java.util.List;
 import java.util.stream.Collectors;
-
-import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.stereotype.Service;
 
@@ -20,18 +20,19 @@ import com.springboot.userinfosys.service.UserService;
 
 @Service
 public class UserServiceImpl implements UserService {
-	
+
 	private UserRepository userRepository;
+	private ModelMapper mapper;
 	
-	@Autowired 
-	public UserServiceImpl(UserRepository userRepository) {
+	 
+	public UserServiceImpl(UserRepository userRepository, ModelMapper mapper) {
 		this.userRepository = userRepository;
+		this.mapper = mapper;
 	}
 
 	@Override
 	public UserDto createUser(UserDto userDto) {
 		// first we need to convert DTO to entity
-		
 		User user = mapToEntity(userDto);
 		
 		// save user to database with userRepository
@@ -44,14 +45,15 @@ public class UserServiceImpl implements UserService {
 	}
 	
 	@Override
-	public UserResponse getAllUsers(int pageNo, int pageSize) {
+	public UserResponse getAllUsers(int pageNo, int pageSize, String sortBy, String sortDir) {
+		
+		Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending() :  Sort.by(sortBy).descending();
 
-		Pageable pageable = PageRequest.of(pageNo, pageSize);
+		Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
 		
 		Page<User> users = userRepository.findAll(pageable);
 		
 		// get content from page object
-		
 		List<User> listOfUsers = users.getContent();
 		 
 		List<UserDto> content = listOfUsers.stream().map(user -> mapToDTO(user)).collect(Collectors.toList());
@@ -68,55 +70,60 @@ public class UserServiceImpl implements UserService {
 		return userResponse;
 	}
 
-
 	@Override
 	public UserDto getUserById(long id) {
-		User user = userRepository.findById(id).orElseThrow(()-> new ResourceNotFoundException("Post", "id", id));
+		User user = userRepository.findById(id).orElseThrow(()-> new ResourceNotFoundException("User", "id", id));
 		return mapToDTO(user);
 	}
 
 	@Override
 	public UserDto updateUser(UserDto userDto, long id) {
-		User user = userRepository.findById(id).orElseThrow(()-> new ResourceNotFoundException("Post", "id", id));
+		// firstly find user by id with userRepository's findById() method.
+		User user = userRepository.findById(id).orElseThrow(()-> new ResourceNotFoundException("User", "id", id));
+		
 		user.setFirstName(userDto.getFirstName());
 		user.setLastName(userDto.getLastName());
 		user.setEmail(userDto.getEmail());
 		user.setUsername(userDto.getUsername());
 		user.setPassword(userDto.getPassword());
 		user.setAboutMe(userDto.getAboutMe());
+		
 		User updatedUser = userRepository.save(user);
 		return mapToDTO(updatedUser);
 	}
 
 	@Override
 	public void deleteUserById(long id) {
-		User user = userRepository.findById(id).orElseThrow(()-> new ResourceNotFoundException("Post", "id", id));
+		User user = userRepository.findById(id).orElseThrow(()-> new ResourceNotFoundException("User", "id", id));
 		userRepository.delete(user);
 	}
 	
-	 // convert Entity into DTO
     private UserDto mapToDTO(User user){
-    	UserDto userDto = new UserDto();
-    	userDto.setId(user.getId());
-    	userDto.setFirstName(user.getFirstName());
-    	userDto.setLastName(user.getLastName());
-    	userDto.setEmail(user.getEmail());
-    	userDto.setUsername(user.getUsername());
-    	userDto.setPassword(user.getPassword());
-    	userDto.setAboutMe(user.getAboutMe());
+    	UserDto userDto = mapper.map(user, UserDto.class);
+    	
+//    	UserDto userDto = new UserDto();
+//    	userDto.setId(user.getId());
+//    	userDto.setFirstName(user.getFirstName());
+//    	userDto.setLastName(user.getLastName());
+//    	userDto.setEmail(user.getEmail());
+//    	userDto.setUsername(user.getUsername());
+//    	userDto.setPassword(user.getPassword());
+//    	userDto.setAboutMe(user.getAboutMe());
 
         return userDto;
     }
 
-    // convert DTO to entity
     private User mapToEntity(UserDto userDto){
-    	User user = new User();
-		user.setFirstName(userDto.getFirstName());
-		user.setLastName(userDto.getLastName());
-		user.setEmail(userDto.getEmail());
-		user.setUsername(userDto.getUsername());
-		user.setPassword(userDto.getPassword());
-		user.setAboutMe(userDto.getAboutMe());
+    	User user = mapper.map(userDto, User.class);
+    	
+//    	User user = new User();
+//		user.setFirstName(userDto.getFirstName());
+//		user.setLastName(userDto.getLastName());
+//		user.setEmail(userDto.getEmail());
+//		user.setUsername(userDto.getUsername());
+//		user.setPassword(userDto.getPassword());
+//		user.setAboutMe(userDto.getAboutMe());
+    	
         return user;
     }
 
